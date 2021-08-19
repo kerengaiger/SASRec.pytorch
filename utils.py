@@ -17,8 +17,8 @@ def random_neq(l, r, s):
 def sample_function(user_train, usernum, itemnum, batch_size, maxlen, result_queue, SEED):
     def sample():
 
-        user = np.random.choice(list(user_train.keys()), 1)
-        while len(user_train[user]) <= 1: user = np.random.choice(list(user_train.keys()), 1)
+        user = np.random.choice(list(user_train.keys()), 1)[0]
+        while len(user_train[user]) <= 1: user = np.random.choice(list(user_train.keys()), 1)[0]
 
         seq = np.zeros([maxlen], dtype=np.int32)
         pos = np.zeros([maxlen], dtype=np.int32)

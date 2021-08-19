@@ -128,7 +128,6 @@ def train_with_cnfg(cnfg):
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', required=True)
 parser.add_argument('--train_dir', required=True)
-parser.add_argument('--save_dir', required=True)
 parser.add_argument('--batch_size', default=128, type=int)
 parser.add_argument('--lr', default=0.001, type=float)
 parser.add_argument('--maxlen', default=50, type=int)
@@ -148,7 +147,7 @@ args = parser.parse_args()
 best_parameters, values, _experiment, _cur_model = optimize(
     parameters=[
         {"name": "dataset", "type": "fixed", "value_type": "sting", "value": args.dataset},
-        {"name": "dataset", "type": "fixed", "value_type": "sting", "value": args.train_dir},
+        {"name": "train_dir", "type": "fixed", "value_type": "sting", "value": args.train_dir},
         {"name": "batch_size", "type": "choice", "value_type": "int", "values": [32, 64, 128, 256]},
         {"name": "lr", "type": "fixed", "value_type": "float", "value": args.lr},
         {"name": "maxlen", "type": "choice", "value_type": "int", "values": [50, 100, 150, 200]},
@@ -166,7 +165,7 @@ best_parameters, values, _experiment, _cur_model = optimize(
     objective_name='hr@10',
     total_trials=args.trials
 )
-pickle.dump(best_parameters, open(pathlib.Path(args.save_dir, 'cnfg.pkl'), "wb"))
+pickle.dump(best_parameters, open(os.path.join(args.dataset + '_' + args.train_dir, 'cnfg.pkl'), "wb"))
 best_parameters['is_final_train'] = values[0]['is_final_train']
 train_with_cnfg(best_parameters)
 

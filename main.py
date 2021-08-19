@@ -159,6 +159,7 @@ best_parameters, values, _experiment, _cur_model = optimize(
         {"name": "l2_emb", "type": "fixed", "value_type": "float", "value": args.l2_emb},
         {"name": "device", "type": "fixed", "value_type": "str", "value": args.device},
         {"name": "is_final_train", "type": "fixed", "value_type": "bool", "value": False},
+        {"name": "inference_only", "type": "fixed", "value_type": "bool", "value": False},
         {"name": "split", "type": "fixed", "value_type": "str", "value": args.split_char},
         {"name": "state_dict_path", "type": "fixed", "value_type": "str", "value": args.state_dict_path},
 

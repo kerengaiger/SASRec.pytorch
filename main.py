@@ -153,6 +153,7 @@ best_parameters, values, _experiment, _cur_model = optimize(
         {"name": "maxlen", "type": "choice", "value_type": "int", "values": [50, 100, 150, 200]},
         {"name": "hidden_units", "type": "choice", "value_type": "int", "values": [50, 60, 70, 80, 90, 100]},
         {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [2, 3, 4]},
+        {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2, 3]},
         {"name": "num_epochs", "type": "fixed", "value_type": "int", "value": 201},
         {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
         {"name": "l2_emb", "type": "fixed", "value_type": "float", "value": args.l2_emb},

@@ -143,11 +143,10 @@ parser.add_argument('--inference_only', default=False, type=str2bool)
 parser.add_argument('--state_dict_path', default=None, type=str)
 
 args = parser.parse_args()
-
 best_parameters, values, _experiment, _cur_model = optimize(
     parameters=[
-        {"name": "dataset", "type": "fixed", "value_type": "sting", "value": args.dataset},
-        {"name": "train_dir", "type": "fixed", "value_type": "sting", "value": args.train_dir},
+        {"name": "dataset", "type": "fixed", "value_type": "str", "value": args.dataset},
+        {"name": "train_dir", "type": "fixed", "value_type": "str", "value": args.train_dir},
         {"name": "batch_size", "type": "choice", "value_type": "int", "values": [32, 64, 128, 256]},
         {"name": "lr", "type": "fixed", "value_type": "float", "value": args.lr},
         {"name": "maxlen", "type": "choice", "value_type": "int", "values": [50, 100, 150, 200]},
@@ -162,7 +161,7 @@ best_parameters, values, _experiment, _cur_model = optimize(
     ],
     evaluation_function=train_with_cnfg,
     minimize=False,
-    objective_name='hr@10',
+    objective_name='hr10',
     total_trials=args.trials
 )
 pickle.dump(best_parameters, open(os.path.join(args.dataset + '_' + args.train_dir, 'cnfg.pkl'), "wb"))

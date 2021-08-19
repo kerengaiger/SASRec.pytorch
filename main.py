@@ -55,7 +55,7 @@ def train_with_cnfg(cnfg):
     model.train() # enable model training
 
     epoch_start_idx = 1
-    if cnfg['state_dict_path'] is not None:
+    if cnfg['state_dict_path'] != '':
         try:
             model.load_state_dict(torch.load(cnfg['state_dict_path'], map_location=torch.device(cnfg['device'])))
             tail = cnfg['state_dict_path'][cnfg['state_dict_path'].find('epoch=') + 6:]
@@ -141,7 +141,7 @@ parser.add_argument('--dropout_rate', default=0.5, type=float)
 parser.add_argument('--l2_emb', default=0.0, type=float)
 parser.add_argument('--device', default='cpu', type=str)
 parser.add_argument('--inference_only', default=False, type=str2bool)
-parser.add_argument('--state_dict_path', default=None, type=str)
+parser.add_argument('--state_dict_path', default='', type=str)
 
 args = parser.parse_args()
 best_parameters, values, _experiment, _cur_model = optimize(

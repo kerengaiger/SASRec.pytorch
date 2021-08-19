@@ -155,7 +155,7 @@ best_parameters, values, _experiment, _cur_model = optimize(
         {"name": "num_epochs", "type": "fixed", "value_type": "int", "value": 201},
         {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
         {"name": "l2_emb", "type": "fixed", "value_type": "float", "value": args.l2_emb},
-        {"name": "device", "type": "fixed", "value_type": "sting", "value": args.device},
+        {"name": "device", "type": "fixed", "value_type": "str", "value": args.device},
         {"name": "is_final_train", "type": "fixed", "value_type": "bool", "value": False},
 
     ],

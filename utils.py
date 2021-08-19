@@ -73,7 +73,7 @@ class WarpSampler(object):
 
 
 # train/val/test data generation
-def data_partition(fname):
+def data_partition(fname, split_char):
     usernum = 0
     itemnum = 0
     User = defaultdict(list)
@@ -83,7 +83,7 @@ def data_partition(fname):
     # assume user/item index starting from 1
     f = open('data/%s.txt' % fname, 'r')
     for line in f:
-        u, i = line.rstrip().split(' ')
+        u, i = line.rstrip().split(split_char)
         u = int(u)
         i = int(i)
         usernum = max(u, usernum)

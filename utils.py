@@ -110,6 +110,9 @@ def evaluate(model, dataset, cnfg):
     [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
 
     users_lst = list(train.keys()) + list(valid.keys()) + list(test.keys())
+    print(type(list(train.values())))
+    print(type(list(valid.values())))
+    print(type(list(test.values())))
     items_set = set(list(train.values()) + list(valid.values()) + list(test.values()))
 
     NDCG = 0.0

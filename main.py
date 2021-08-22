@@ -10,7 +10,7 @@ from utils import *
 import pickle
 import pathlib
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 
 
 def str2bool(s):

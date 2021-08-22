@@ -110,6 +110,7 @@ def evaluate(model, dataset, cnfg):
     [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
 
     users_lst = list(train.keys()) + list(valid.keys()) + list(test.keys())
+    print(list(valid.values()))
     print(type(list(train.values())))
     print(type(list(valid.values())))
     print(type(list(test.values())))

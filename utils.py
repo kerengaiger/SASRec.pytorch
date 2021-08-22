@@ -113,6 +113,7 @@ def evaluate(model, dataset, cnfg):
     print(type(list(train.values())))
     print(type(list(valid.values())))
     print(type(list(test.values())))
+    print(type(list(train.values()) + list(valid.values()) + list(test.values())))
     items_set = set(list(train.values()) + list(valid.values()) + list(test.values()))
 
     NDCG = 0.0

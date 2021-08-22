@@ -109,14 +109,19 @@ def data_partition(fname, split_char):
 def evaluate(model, dataset, cnfg):
     [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
 
+    users_lst = list(train.keys()) + list(valid.keys()) + list(test.keys())
+    items_set = set(list(train.values()) + list(valid.keys()) + list(test.keys()))
+
     NDCG = 0.0
     HT = 0.0
     valid_user = 0.0
 
     if usernum>10000:
-        users = random.sample(range(1, usernum + 1), 10000)
+        # users = random.sample(range(1, usernum + 1), 10000)
+        users = list(np.random.choice(users_lst, 10000))
     else:
-        users = range(1, usernum + 1)
+        # users = range(1, usernum + 1)
+        users = users_lst
     for u in users:
 
         if len(train[u]) < 1 or len(test[u]) < 1: continue
@@ -129,13 +134,15 @@ def evaluate(model, dataset, cnfg):
             seq[idx] = i
             idx -= 1
             if idx == -1: break
+
         rated = set(train[u])
         rated.add(0)
-        item_idx = [test[u][0]]
-        for _ in range(100):
-            t = np.random.randint(1, itemnum + 1)
-            while t in rated: t = np.random.randint(1, itemnum + 1)
-            item_idx.append(t)
+        item_idx = [valid[u][0]]
+        item_idx = item_idx + list(np.random.choice(list(items_set - rated), 100))
+        # for _ in range(100):
+        #     t = np.random.randint(1, itemnum + 1)
+        #     while t in rated: t = np.random.randint(1, itemnum + 1)
+        #     item_idx.append(t)
 
         predictions = -model.predict(*[np.array(l) for l in [[u], [seq], item_idx]])
         predictions = predictions[0] # - for 1st argsort DESC
@@ -157,15 +164,17 @@ def evaluate(model, dataset, cnfg):
 # evaluate on val set
 def evaluate_valid(model, dataset, cnfg):
     [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
+    users_lst = list(train.keys()) + list(valid.keys()) + list(test.keys())
+    items_set = set(list(train.values()) + list(valid.keys()) + list(test.keys()))
 
     NDCG = 0.0
     valid_user = 0.0
     HT = 0.0
     if usernum>10000:
         # users = random.sample(range(1, usernum + 1), 10000)
-        users = list(np.random.choice(list(train.keys()), 10000))
+        users = list(np.random.choice(users_lst, 10000))
     else:
-        users = list(train.keys())
+        users = users_lst
     for u in users:
         if len(train[u]) < 1 or len(valid[u]) < 1: continue
 
@@ -179,11 +188,12 @@ def evaluate_valid(model, dataset, cnfg):
         rated = set(train[u])
         rated.add(0)
         item_idx = [valid[u][0]]
-        for _ in range(100):
-            # Also here- take from items list????
-            t = np.random.randint(1, itemnum + 1)
-            while t in rated: t = np.random.randint(1, itemnum + 1)
-            item_idx.append(t)
+        item_idx = item_idx + list(np.random.choice(list(items_set - rated), 100))
+        # for _ in range(100):
+        #     # Also here- take from items list????
+        #     t = np.random.randint(1, itemnum + 1)
+        #     while t in rated: t = np.random.randint(1, itemnum + 1)
+        #     item_idx.append(t)
 
         predictions = -model.predict(*[np.array(l) for l in [[u], [seq], item_idx]])
         predictions = predictions[0]

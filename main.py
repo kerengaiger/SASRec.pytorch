@@ -172,6 +172,6 @@ best_parameters, values, _experiment, _cur_model = optimize(
     total_trials=args.trials
 )
 pickle.dump(best_parameters, open(os.path.join(args.dataset + '_' + args.train_dir, 'cnfg.pkl'), "wb"))
-best_parameters['is_final_train'] = values[0]['is_final_train']
+best_parameters['is_final_train'] = True
 train_with_cnfg(best_parameters)
 

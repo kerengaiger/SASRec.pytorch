@@ -1,5 +1,6 @@
 import sys
 import copy
+import pandas as pd
 import torch
 import random
 import numpy as np
@@ -104,6 +105,7 @@ def data_partition(fname, split_char):
             user_test[user].append(User[user][-1])
     return [user_train, user_valid, user_test, usernum, itemnum]
 
+
 # TODO: merge evaluate functions for test and val set
 # evaluate on test set
 def evaluate(model, dataset, cnfg):
@@ -124,6 +126,10 @@ def evaluate(model, dataset, cnfg):
     else:
         # users = range(1, usernum + 1)
         users = users_lst
+
+    users_test = []
+    items_test = []
+    preds_test = []
     for u in users:
 
         if len(train[u]) < 1 or len(test[u]) < 1: continue
@@ -139,7 +145,7 @@ def evaluate(model, dataset, cnfg):
 
         rated = set(train[u])
         rated.add(0)
-        item_idx = [valid[u][0]]
+        item_idx = [test[u][0]]
         item_idx = item_idx + list(np.random.choice(list(items_set - rated), 100))
         # for _ in range(100):
         #     t = np.random.randint(1, itemnum + 1)
@@ -150,6 +156,10 @@ def evaluate(model, dataset, cnfg):
         predictions = predictions[0] # - for 1st argsort DESC
 
         rank = predictions.argsort().argsort()[0].item()
+        users_test.append(u)
+        items_test.append(item_idx)
+        preds_test.append(rank)
+        pd.DataFrame([users_test, items_test, preds_test]).T.to_csv('preds_out.csv', index=False)
 
         valid_user += 1
 

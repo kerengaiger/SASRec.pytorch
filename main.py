@@ -99,7 +99,7 @@ def train_with_cnfg(cnfg):
             adam_optimizer.step()
             print("loss in epoch {} iteration {}: {}".format(epoch, step, loss.item())) # expected 0.4~0.6 after init few epochs
 
-        if epoch % 20 == 0:
+        if epoch % 20 == 0 and cnfg['is_final_train']:
             model.eval()
             t1 = time.time() - t0
             T += t1

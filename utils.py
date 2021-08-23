@@ -1,5 +1,6 @@
 import sys
 import copy
+import pandas as pd
 import torch
 import random
 import numpy as np
@@ -125,6 +126,10 @@ def evaluate(model, dataset, cnfg):
     else:
         # users = range(1, usernum + 1)
         users = users_lst
+
+    users_test = []
+    items_test = []
+    preds_test = []
     for u in users:
 
         if len(train[u]) < 1 or len(test[u]) < 1: continue
@@ -151,6 +156,10 @@ def evaluate(model, dataset, cnfg):
         predictions = predictions[0] # - for 1st argsort DESC
 
         rank = predictions.argsort().argsort()[0].item()
+        users_test.append(u)
+        items_test.append(item_idx)
+        preds_test.append(rank)
+        pd.DataFrame([users_test, items_test, preds_test]).T.to_csv('preds_out.csv', index=False)
 
         valid_user += 1
 

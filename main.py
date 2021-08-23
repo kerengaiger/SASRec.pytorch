@@ -99,15 +99,18 @@ def train_with_cnfg(cnfg):
             adam_optimizer.step()
             print("loss in epoch {} iteration {}: {}".format(epoch, step, loss.item())) # expected 0.4~0.6 after init few epochs
 
-        if epoch % 20 == 0 and cnfg['is_final_train']:
+        if epoch % 20 == 0:
             model.eval()
             t1 = time.time() - t0
             T += t1
             print('Evaluating', end='')
-            t_test = evaluate(model, dataset, cnfg)
+            # t_test = evaluate(model, dataset, cnfg)
             t_valid = evaluate_valid(model, dataset, cnfg)
-            print('epoch:%d, time: %f(s), valid (NDCG@10: %.4f, HR@10: %.4f), test (NDCG@10: %.4f, HR@10: %.4f)'
-                    % (epoch, T, t_valid[0], t_valid[1], t_test[0], t_test[1]))
+            t_test = ''
+            if cnfg['is_final_train']:
+                t_test = evaluate(model, dataset, cnfg)
+            # print('epoch:%d, time: %f(s), valid (NDCG@10: %.4f, HR@10: %.4f), test (NDCG@10: %.4f, HR@10: %.4f)'
+            #         % (epoch, T, t_valid[0], t_valid[1], t_test[0], t_test[1]))
 
             f.write(str(t_valid) + ' ' + str(t_test) + '\n')
             f.flush()

@@ -83,10 +83,13 @@ def data_partition(fname, split_char):
     user_test = {}
     # assume user/item index starting from 1
     f = open('data/%s.txt' % fname, 'r')
+    items_lst = []
     for line in f:
         u, i = line.rstrip().split(split_char)
         u = int(u)
         i = int(i)
+        if i not in items_lst:
+            items_lst.append(i)
         usernum = max(u, usernum)
         itemnum = max(i, itemnum)
         User[u].append(i)
@@ -103,7 +106,7 @@ def data_partition(fname, split_char):
             user_valid[user].append(User[user][-2])
             user_test[user] = []
             user_test[user].append(User[user][-1])
-    return [user_train, user_valid, user_test, usernum, itemnum]
+    return [user_train, user_valid, user_test, usernum, itemnum, items_lst]
 
 
 # TODO: merge evaluate functions for test and val set

@@ -27,7 +27,7 @@ def train_with_cnfg(cnfg):
     f.close()
 
     dataset = data_partition(cnfg['dataset'], cnfg['split'])
-    [user_train, user_valid, user_test, usernum, itemnum] = dataset
+    [user_train, user_valid, _, usernum, itemnum, _] = dataset
 
     if cnfg['is_final_train']:
         print('Final train! Merge between train and valid')

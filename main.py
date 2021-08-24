@@ -147,34 +147,43 @@ parser.add_argument('--l2_emb', default=0.0, type=float)
 parser.add_argument('--device', default='cuda', type=str)
 parser.add_argument('--inference_only', default=False, type=str2bool)
 parser.add_argument('--state_dict_path', default='', type=str)
+parser.add_argument('--is_final_train', default=False, type=str2bool)
+parser.add_argument('--cnfg_file', default='cnfg.pkl', type=str)
 
 args = parser.parse_args()
-best_parameters, values, _experiment, _cur_model = optimize(
-    parameters=[
-        {"name": "dataset", "type": "fixed", "value_type": "str", "value": args.dataset},
-        {"name": "train_dir", "type": "fixed", "value_type": "str", "value": args.train_dir},
-        {"name": "batch_size", "type": "choice", "value_type": "int", "values": [32, 64, 128, 256]},
-        {"name": "lr", "type": "fixed", "value_type": "float", "value": args.lr},
-        {"name": "maxlen", "type": "choice", "value_type": "int", "values": [50, 100, 150, 200]},
-        {"name": "hidden_units", "type": "choice", "value_type": "int", "values": [50, 60, 70, 80, 90, 100]},
-        {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [2, 3, 4]},
-        {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2]},
-        {"name": "num_epochs", "type": "fixed", "value_type": "int", "value": 201},
-        {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
-        {"name": "l2_emb", "type": "fixed", "value_type": "float", "value": args.l2_emb},
-        {"name": "device", "type": "fixed", "value_type": "str", "value": args.device},
-        {"name": "is_final_train", "type": "fixed", "value_type": "bool", "value": False},
-        {"name": "inference_only", "type": "fixed", "value_type": "bool", "value": False},
-        {"name": "split", "type": "fixed", "value_type": "str", "value": args.split_char},
-        {"name": "state_dict_path", "type": "fixed", "value_type": "str", "value": args.state_dict_path},
 
-    ],
-    evaluation_function=train_with_cnfg,
-    minimize=False,
-    objective_name='hr10',
-    total_trials=args.trials
-)
-pickle.dump(best_parameters, open(os.path.join(args.dataset + '_' + args.train_dir, 'cnfg.pkl'), "wb"))
-best_parameters['is_final_train'] = True
-train_with_cnfg(best_parameters)
+if args.is_final_train:
+    print('Train with loaded config')
+    cnfg = pickle.load(open(os.path.join(args.dataset + '_' + args.train_dir, args.cnfg_file), 'rb'))
+    train_with_cnfg(cnfg)
+
+else:
+    best_parameters, values, _experiment, _cur_model = optimize(
+        parameters=[
+            {"name": "dataset", "type": "fixed", "value_type": "str", "value": args.dataset},
+            {"name": "train_dir", "type": "fixed", "value_type": "str", "value": args.train_dir},
+            {"name": "batch_size", "type": "choice", "value_type": "int", "values": [32, 64, 128, 256]},
+            {"name": "lr", "type": "fixed", "value_type": "float", "value": args.lr},
+            {"name": "maxlen", "type": "choice", "value_type": "int", "values": [50, 100, 150, 200]},
+            {"name": "hidden_units", "type": "choice", "value_type": "int", "values": [50, 60, 70, 80, 90, 100]},
+            {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [2, 3, 4]},
+            {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2]},
+            {"name": "num_epochs", "type": "fixed", "value_type": "int", "value": 201},
+            {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
+            {"name": "l2_emb", "type": "fixed", "value_type": "float", "value": args.l2_emb},
+            {"name": "device", "type": "fixed", "value_type": "str", "value": args.device},
+            {"name": "is_final_train", "type": "fixed", "value_type": "bool", "value": args.is_final_train},
+            {"name": "inference_only", "type": "fixed", "value_type": "bool", "value": False},
+            {"name": "split", "type": "fixed", "value_type": "str", "value": args.split_char},
+            {"name": "state_dict_path", "type": "fixed", "value_type": "str", "value": args.state_dict_path},
+
+        ],
+        evaluation_function=train_with_cnfg,
+        minimize=False,
+        objective_name='hr10',
+        total_trials=args.trials
+    )
+    pickle.dump(best_parameters, open(os.path.join(args.dataset + '_' + args.train_dir, 'cnfg.pkl'), "wb"))
+    best_parameters['is_final_train'] = True
+    train_with_cnfg(best_parameters)
 

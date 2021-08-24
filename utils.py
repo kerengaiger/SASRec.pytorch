@@ -112,12 +112,9 @@ def data_partition(fname, split_char):
 # TODO: merge evaluate functions for test and val set
 # evaluate on test set
 def evaluate(model, dataset, cnfg):
-    [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
+    [train, valid, test, usernum, _, items_list] = copy.deepcopy(dataset)
 
-    users_lst = list(train.keys()) + list(valid.keys()) + list(test.keys())
-    items_set = set([val_itms[0] for val_itms in list(train.values())] +
-                    [val_itms[0] for val_itms in list(valid.values())] +
-                    [val_itms[0] for val_itms in list(test.values())])
+    users_lst = list(train.keys())
 
     NDCG = 0.0
     HT = 0.0
@@ -149,11 +146,7 @@ def evaluate(model, dataset, cnfg):
         rated = set(train[u])
         rated.add(0)
         item_idx = [test[u][0]]
-        item_idx = item_idx + list(np.random.choice(list(items_set - rated), 100))
-        # for _ in range(100):
-        #     t = np.random.randint(1, itemnum + 1)
-        #     while t in rated: t = np.random.randint(1, itemnum + 1)
-        #     item_idx.append(t)
+        item_idx = item_idx + list(np.random.choice(list(set(items_list) - rated), 100))
 
         predictions = -model.predict(*[np.array(l) for l in [[u], [seq], item_idx]])
         predictions = predictions[0] # - for 1st argsort DESC
@@ -178,11 +171,8 @@ def evaluate(model, dataset, cnfg):
 
 # evaluate on val set
 def evaluate_valid(model, dataset, cnfg):
-    [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
-    users_lst = list(train.keys()) + list(valid.keys()) + list(test.keys())
-    items_set = set([val_itms[0] for val_itms in list(train.values())] +
-                    [val_itms[0] for val_itms in list(valid.values())] +
-                    [val_itms[0] for val_itms in list(test.values())])
+    [train, valid, test, usernum, itemnum, items_list] = copy.deepcopy(dataset)
+    users_lst = list(train.keys())
 
     NDCG = 0.0
     valid_user = 0.0
@@ -205,12 +195,7 @@ def evaluate_valid(model, dataset, cnfg):
         rated = set(train[u])
         rated.add(0)
         item_idx = [valid[u][0]]
-        item_idx = item_idx + list(np.random.choice(list(items_set - rated), 100))
-        # for _ in range(100):
-        #     # Also here- take from items list????
-        #     t = np.random.randint(1, itemnum + 1)
-        #     while t in rated: t = np.random.randint(1, itemnum + 1)
-        #     item_idx.append(t)
+        item_idx = item_idx + list(np.random.choice(list(set(items_list) - rated), 100))
 
         predictions = -model.predict(*[np.array(l) for l in [[u], [seq], item_idx]])
         predictions = predictions[0]

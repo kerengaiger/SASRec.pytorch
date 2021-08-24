@@ -83,6 +83,7 @@ def train_with_cnfg(cnfg):
 
     for epoch in range(epoch_start_idx, cnfg['num_epochs'] + 1):
         if cnfg['inference_only']: break # just to decrease identition
+        loss_epoch = 0.0
         for step in range(num_batch): # tqdm(range(num_batch), total=num_batch, ncols=70, leave=False, unit='b'):
             u, seq, pos, neg = sampler.next_batch() # tuples to ndarray
             u, seq, pos, neg = np.array(u), np.array(seq), np.array(pos), np.array(neg)
@@ -97,7 +98,8 @@ def train_with_cnfg(cnfg):
             for param in model.item_emb.parameters(): loss += cnfg['l2_emb'] * torch.norm(param)
             loss.backward()
             adam_optimizer.step()
-            print("loss in epoch {} iteration {}: {}".format(epoch, step, loss.item())) # expected 0.4~0.6 after init few epochs
+            loss_epoch += loss.item()
+        print("loss in epoch {}: {}".format(epoch, loss_epoch)) # expected 0.4~0.6 after init few epochs
 
         if epoch % 20 == 0:
             model.eval()

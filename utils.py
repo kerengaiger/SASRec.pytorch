@@ -153,7 +153,7 @@ def evaluate(model, dataset, cnfg):
 
         rank = predictions.argsort().argsort()[0].item()
         users_test.append(u)
-        items_test.append(item_idx)
+        items_test.append(test[u][0])
         preds_test.append(rank)
         pd.DataFrame([users_test, items_test, preds_test]).T.to_csv('preds_out.csv', index=False)
 

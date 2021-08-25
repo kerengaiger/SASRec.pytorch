@@ -143,10 +143,10 @@ def evaluate(model, dataset, cnfg):
             idx -= 1
             if idx == -1: break
 
-        rated = set(train[u])
-        rated.add(0)
-        item_idx = [test[u][0]]
-        item_idx = item_idx + list(np.random.choice(list(set(items_list) - rated), 100))
+        # rated = set(train[u])
+        # rated.add(0)
+        item_idx = test[u]
+        item_idx = item_idx + list(set(items_list) - set(item_idx))
 
         predictions = -model.predict(*[np.array(l) for l in [[u], [seq], item_idx]])
         predictions = predictions[0] # - for 1st argsort DESC

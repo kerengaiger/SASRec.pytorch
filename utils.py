@@ -75,6 +75,7 @@ class WarpSampler(object):
 
 # train/val/test data generation
 def data_partition(fname, split_char):
+    print(fname)
     usernum = 0
     itemnum = 0
     User = defaultdict(list)

@@ -184,6 +184,7 @@ else:
             {"name": "inference_only", "type": "fixed", "value_type": "bool", "value": False},
             {"name": "split", "type": "fixed", "value_type": "str", "value": args.split_char},
             {"name": "state_dict_path", "type": "fixed", "value_type": "str", "value": args.state_dict_path},
+            {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
 
         ],
         evaluation_function=train_with_cnfg,

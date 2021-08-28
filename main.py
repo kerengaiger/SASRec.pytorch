@@ -9,6 +9,8 @@ from tqdm import tqdm
 from utils import *
 import pickle
 import pathlib
+from torch.utils.tensorboard import SummaryWriter
+
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 
@@ -81,6 +83,8 @@ def train_with_cnfg(cnfg):
     T = 0.0
     t0 = time.time()
 
+    writer = SummaryWriter(log_dir=cnfg['log_dir'])
+
     for epoch in range(epoch_start_idx, cnfg['num_epochs'] + 1):
         if cnfg['inference_only']: break # just to decrease identition
         loss_epoch = 0.0
@@ -108,6 +112,7 @@ def train_with_cnfg(cnfg):
             print('Evaluating', end='')
             # t_test = evaluate(model, dataset, cnfg)
             t_valid = evaluate_valid(model, dataset, cnfg)
+            writer.add_scalar("HR@10/valid", t_valid[1], epoch)
             t_test = ''
             if cnfg['is_final_train']:
                 t_test = evaluate(model, dataset, cnfg)
@@ -124,7 +129,8 @@ def train_with_cnfg(cnfg):
             fname = fname.format(cnfg['num_epochs'], cnfg['lr'], cnfg['num_blocks'], cnfg['num_heads'],
                                  cnfg['hidden_units'], cnfg['maxlen'])
             torch.save(model.state_dict(), os.path.join(folder, fname))
-
+    writer.flush()
+    writer.close()
     f.close()
     sampler.close()
     print("Done config")
@@ -150,6 +156,7 @@ parser.add_argument('--inference_only', default=False, type=str2bool)
 parser.add_argument('--state_dict_path', default='', type=str)
 parser.add_argument('--is_final_train', default=False, type=str2bool)
 parser.add_argument('--cnfg_file', default='cnfg.pkl', type=str)
+parser.add_argument('--log_dir', default='tensorboard/', type=str)
 
 args = parser.parse_args()
 

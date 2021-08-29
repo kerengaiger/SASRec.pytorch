@@ -117,12 +117,7 @@ def evaluate(model, dataset, cnfg):
     HT = 0.0
     valid_user = 0.0
 
-    if usernum>10000:
-        # users = random.sample(range(1, usernum + 1), 10000)
-        users = list(np.random.choice(users_lst, 10000))
-    else:
-        # users = range(1, usernum + 1)
-        users = users_lst
+    users = users_lst
 
     users_test = []
     items_test = []
@@ -174,11 +169,7 @@ def evaluate_valid(model, dataset, cnfg):
     NDCG = 0.0
     valid_user = 0.0
     HT = 0.0
-    if usernum>10000:
-        # users = random.sample(range(1, usernum + 1), 10000)
-        users = list(np.random.choice(users_lst, 10000))
-    else:
-        users = users_lst
+    users = users_lst
     for u in users:
         if len(train[u]) < 1 or len(valid[u]) < 1: continue
 

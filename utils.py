@@ -109,7 +109,7 @@ def data_partition(fname, split_char):
 # TODO: merge evaluate functions for test and val set
 # evaluate on test set
 def evaluate(model, dataset, cnfg):
-    [train, valid, test, usernum, _, items_list] = copy.deepcopy(dataset)
+    [train, valid, test, _, _, items_list] = copy.deepcopy(dataset)
 
     users_lst = list(train.keys())
 
@@ -163,7 +163,7 @@ def evaluate(model, dataset, cnfg):
 
 # evaluate on val set
 def evaluate_valid(model, dataset, cnfg):
-    [train, valid, test, usernum, itemnum, items_list] = copy.deepcopy(dataset)
+    [train, valid, _, _, _, items_list] = copy.deepcopy(dataset)
     users_lst = list(train.keys())
 
     NDCG = 0.0

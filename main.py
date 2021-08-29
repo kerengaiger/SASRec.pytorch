@@ -45,6 +45,8 @@ def train_with_cnfg(cnfg):
     f = open(os.path.join(cnfg['dataset'] + '_' + cnfg['train_dir'], 'log.txt'), 'w')
 
     sampler = WarpSampler(user_train, usernum, itemnum, batch_size=cnfg['batch_size'], maxlen=cnfg['maxlen'], n_workers=3)
+    print(usernum)
+    print(itemnum)
     model = SASRec(usernum, itemnum, cnfg).to(cnfg['device']) # no ReLU activation in original SASRec implementation?
 
     for name, param in model.named_parameters():

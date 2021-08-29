@@ -76,8 +76,6 @@ class WarpSampler(object):
 # train/val/test data generation
 def data_partition(fname, split_char):
     print(fname)
-    usernum = 0
-    itemnum = 0
     User = defaultdict(list)
     user_train = {}
     user_valid = {}
@@ -91,8 +89,6 @@ def data_partition(fname, split_char):
         i = int(i)
         if i not in items_lst:
             items_lst.append(i)
-        usernum = max(u, usernum)
-        itemnum = max(i, itemnum)
         User[u].append(i)
 
     for user in User:
@@ -107,7 +103,7 @@ def data_partition(fname, split_char):
             user_valid[user].append(User[user][-2])
             user_test[user] = []
             user_test[user].append(User[user][-1])
-    return [user_train, user_valid, user_test, usernum, itemnum, items_lst]
+    return [user_train, user_valid, user_test, len(user_train.keys()), len(items_lst), items_lst]
 
 
 # TODO: merge evaluate functions for test and val set

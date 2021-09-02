@@ -161,6 +161,7 @@ parser.add_argument('--log_dir', default='tensorboard/', type=str)
 
 args = parser.parse_args()
 
+print(args.is_final_train)
 if args.is_final_train:
     print('Train with loaded config')
     cnfg = pickle.load(open(os.path.join(args.dataset + '_' + args.train_dir, args.cnfg_file), 'rb'))

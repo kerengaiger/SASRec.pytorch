@@ -112,12 +112,9 @@ def train_with_cnfg(cnfg):
             print('Evaluating', end='')
             # t_test = evaluate(model, dataset, cnfg)
             t_valid = evaluate_valid(model, dataset, cnfg)
-            writer.add_scalar("HR@10/valid", t_valid[1], epoch)
+            writer.add_scalar("HR@20/valid", t_valid[1], epoch)
             t_test = ''
-            if cnfg['is_final_train']:
-                t_test = evaluate(model, dataset, cnfg)
-            print('epoch:%d, time: %f(s), valid (NDCG@10: %.4f, HR@10: %.4f)' % (epoch, T, t_valid[0], t_valid[1], ))
-
+            print('epoch:%d, time: %f(s), valid (NDCG@20: %.4f, HR@20: %.4f)' % (epoch, T, t_valid[0], t_valid[1],))
             f.write(str(t_valid) + ' ' + str(t_test) + '\n')
             f.flush()
             t0 = time.time()
@@ -129,6 +126,10 @@ def train_with_cnfg(cnfg):
             fname = fname.format(cnfg['num_epochs'], cnfg['lr'], cnfg['num_blocks'], cnfg['num_heads'],
                                  cnfg['hidden_units'], cnfg['maxlen'])
             torch.save(model.state_dict(), os.path.join(folder, fname))
+            if cnfg['is_final_train']:
+                ndcg_test, hr_test, preds_test = evaluate(model, dataset, cnfg)
+            preds_test.to_csv(os.path.join(folder, 'preds_test.csv'), index=False, header=False)
+
     writer.flush()
     writer.close()
     f.close()

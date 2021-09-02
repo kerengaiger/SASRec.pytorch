@@ -155,7 +155,7 @@ def evaluate(model, dataset, cnfg):
 
         valid_user += 1
 
-        if rank < 10:
+        if rank < 20:
             NDCG += 1 / np.log2(rank + 2)
             HT += 1
         if valid_user % 100 == 0:
@@ -196,7 +196,7 @@ def evaluate_valid(model, dataset, cnfg):
 
         valid_user += 1
 
-        if rank < 10:
+        if rank < 20:
             NDCG += 1 / np.log2(rank + 2)
             HT += 1
         if valid_user % 100 == 0:

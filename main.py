@@ -114,12 +114,9 @@ def train_with_cnfg(cnfg):
             print('Evaluating', end='')
             # t_test = evaluate(model, dataset, cnfg)
             t_valid = evaluate_valid(model, dataset, cnfg)
-            writer.add_scalar("HR@10/valid", t_valid[1], epoch)
+            writer.add_scalar("HR@20/valid", t_valid[1], epoch)
             t_test = ''
-            if cnfg['is_final_train']:
-                t_test = evaluate(model, dataset, cnfg)
-            print('epoch:%d, time: %f(s), valid (NDCG@10: %.4f, HR@10: %.4f)' % (epoch, T, t_valid[0], t_valid[1], ))
-
+            print('epoch:%d, time: %f(s), valid (NDCG@20: %.4f, HR@20: %.4f)' % (epoch, T, t_valid[0], t_valid[1],))
             f.write(str(t_valid) + ' ' + str(t_test) + '\n')
             f.flush()
             t0 = time.time()

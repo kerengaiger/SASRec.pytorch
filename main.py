@@ -155,7 +155,7 @@ parser.add_argument('--l2_emb', default=0.0, type=float)
 parser.add_argument('--device', default='cuda', type=str)
 parser.add_argument('--inference_only', default=False, type=str2bool)
 parser.add_argument('--state_dict_path', default='', type=str)
-parser.add_argument('--is_final_train', default=False, type=str2bool)
+parser.add_argument('--is_final_train', action='store_true')
 parser.add_argument('--cnfg_file', default='cnfg.pkl', type=str)
 parser.add_argument('--log_dir', default='tensorboard/', type=str)
 

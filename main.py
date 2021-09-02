@@ -128,6 +128,10 @@ def train_with_cnfg(cnfg):
             fname = fname.format(cnfg['num_epochs'], cnfg['lr'], cnfg['num_blocks'], cnfg['num_heads'],
                                  cnfg['hidden_units'], cnfg['maxlen'])
             torch.save(model.state_dict(), os.path.join(folder, fname))
+            if cnfg['is_final_train']:
+                ndcg_test, hr_test, preds_test = evaluate(model, dataset, cnfg)
+            preds_test.to_csv(os.path.join(folder, 'preds_test.csv'), index=False, header=False)
+
     writer.flush()
     writer.close()
     f.close()

@@ -119,7 +119,7 @@ def evaluate(model, dataset, cnfg):
 
     NDCG = 0.0
     HT = 0.0
-    valid_user = 0.0
+    test_user = 0.0
 
     users = users_lst
 
@@ -151,18 +151,18 @@ def evaluate(model, dataset, cnfg):
         users_test.append(u)
         items_test.append(test[u][0])
         preds_test.append(rank)
-        pd.DataFrame([users_test, items_test, preds_test]).T.to_csv('preds_out.csv', index=False)
 
-        valid_user += 1
+        test_user += 1
 
         if rank < 20:
             NDCG += 1 / np.log2(rank + 2)
             HT += 1
-        if valid_user % 100 == 0:
+        if test_user % 100 == 0:
             print('.', end="")
             sys.stdout.flush()
 
-    return NDCG / valid_user, HT / valid_user
+    return NDCG / test_user, HT / test_user, pd.DataFrame([users_test, items_test, preds_test]).T.to_csv(
+        'preds_out.csv', index=False)
 
 
 # evaluate on val set

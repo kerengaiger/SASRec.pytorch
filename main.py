@@ -165,6 +165,7 @@ print(args.is_final_train)
 if args.is_final_train:
     print('Train with loaded config')
     cnfg = pickle.load(open(os.path.join(args.dataset + '_' + args.train_dir, args.cnfg_file), 'rb'))
+    cnfg['is_final_train'] = True
     train_with_cnfg(cnfg)
 
 else:

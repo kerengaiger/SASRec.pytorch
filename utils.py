@@ -161,8 +161,7 @@ def evaluate(model, dataset, cnfg):
             print('.', end="")
             sys.stdout.flush()
 
-    return NDCG / test_user, HT / test_user, pd.DataFrame([users_test, items_test, preds_test]).T.to_csv(
-        'preds_out.csv', index=False)
+    return NDCG / test_user, HT / test_user, pd.DataFrame([users_test, items_test, preds_test]).T
 
 
 # evaluate on val set

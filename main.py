@@ -12,7 +12,7 @@ import pathlib
 from torch.utils.tensorboard import SummaryWriter
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "1"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 
 def str2bool(s):
@@ -128,7 +128,7 @@ def train_with_cnfg(cnfg):
             torch.save(model.state_dict(), os.path.join(folder, fname))
             if cnfg['is_final_train']:
                 ndcg_test, hr_test, preds_test = evaluate(model, dataset, cnfg)
-            preds_test.to_csv(os.path.join(folder, 'preds_test.csv'), index=False, header=False)
+                preds_test.to_csv(os.path.join(folder, 'preds_test.csv'), index=False, header=False)
 
     writer.flush()
     writer.close()

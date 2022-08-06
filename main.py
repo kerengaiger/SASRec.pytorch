@@ -189,7 +189,7 @@ def train_with_cnfg(cnfg, trial=None):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True)
-    parser.add_argument('--train_dir', default='default', required=True)
+    parser.add_argument('--train_dir', default='default', type=str)
     parser.add_argument('--split_char', default=',', type=str)
     parser.add_argument('--batch_size', default=128, type=int)
     parser.add_argument('--lr', default=0.001, type=float)

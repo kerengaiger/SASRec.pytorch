@@ -55,7 +55,7 @@ def train_with_cnfg(cnfg, trial=None):
         f.write('\n'.join([str(k) + ',' + str(v) for k, v in sorted(cnfg.items(), key=lambda x: x[0])]))
     f.close()
 
-    dataset = data_partition(cnfg['dataset'], cnfg['split'])
+    dataset = data_partition(cnfg['dataset'], cnfg['split_char'])
     [user_train, user_valid, _, usernum, itemnum, _] = dataset
 
     if cnfg['is_final_train']:
@@ -189,7 +189,7 @@ def train_with_cnfg(cnfg, trial=None):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', required=True)
-    parser.add_argument('--train_dir', required=True)
+    parser.add_argument('--train_dir', default='default', required=True)
     parser.add_argument('--split_char', default=',', type=str)
     parser.add_argument('--batch_size', default=128, type=int)
     parser.add_argument('--lr', default=0.001, type=float)

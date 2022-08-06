@@ -1,18 +1,45 @@
 import os
 import time
-import torch
-from ax.service.managed_loop import optimize
 import argparse
 
 from model import SASRec
-from tqdm import tqdm
 from utils import *
 import pickle
-import pathlib
 from torch.utils.tensorboard import SummaryWriter
-
+import optuna
 
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+
+
+class Objective:
+
+    def __init__(self):
+        self.best_epoch = None
+        self.cur_cnfg = None
+
+    def __call__(self, trial):
+        cnfg = {}
+        args = parse_args()
+        args = vars(args)
+        cnfg['lr'] = trial.suggest_loguniform("lr", 1e-5, 1e-1)
+        cnfg['batch_size'] = 32
+        cnfg['maxlen'] = [50, 100, 150, 200]
+        cnfg['hidden_units'] = [50, 60, 70, 80, 90, 100]
+        cnfg['dropout_rate'] = trial.suggest_float("dropout", 0.1, 0.5, step=0.1)
+        cnfg['inference_only'] = False
+        cnfg['num_blocks'] = [2, 3, 4]
+        cnfg['num_heads'] = [1, 2]
+        cnfg['num_epochs'] = 201
+        valid_loss = train_with_cnfg({**cnfg, **args}, trial)
+        self.cur_cnfg = cnfg
+        return valid_loss
+
+    def callback(self, study, trial):
+        args = parse_args()
+        if study.best_trial == trial:
+            best_cnfg = self.cur_cnfg
+            best_cnfg = {**best_cnfg, **vars(args)}
+            pickle.dump(best_cnfg, open(os.path.join(args.dataset + '_' + args.train_dir, 'cnfg.pkl'), "wb"))
 
 
 def str2bool(s):
@@ -21,7 +48,7 @@ def str2bool(s):
     return s == 'true'
 
 
-def train_with_cnfg(cnfg):
+def train_with_cnfg(cnfg, trial=None):
     if not os.path.isdir(cnfg['dataset'] + '_' + cnfg['train_dir']):
         os.makedirs(cnfg['dataset'] + '_' + cnfg['train_dir'])
     with open(os.path.join(cnfg['dataset'] + '_' + cnfg['train_dir'], 'args.txt'), 'w') as f:
@@ -82,6 +109,8 @@ def train_with_cnfg(cnfg):
 
     T = 0.0
     t0 = time.time()
+    best_val_hr_20 = 0
+    best_epoch = cnfg['num_epochs']
 
     writer = SummaryWriter(log_dir=cnfg['log_dir'])
 
@@ -105,7 +134,7 @@ def train_with_cnfg(cnfg):
             loss_epoch += loss.item()
         print("loss in epoch {}: {}".format(epoch, loss_epoch)) # expected 0.4~0.6 after init few epochs
 
-        if epoch % 20 == 0:
+        if epoch % 1 == 0:
             model.eval()
             t1 = time.time() - t0
             T += t1
@@ -114,11 +143,30 @@ def train_with_cnfg(cnfg):
             t_valid = evaluate_valid(model, dataset, cnfg)
             writer.add_scalar("HR@20/valid", t_valid[1], epoch)
             t_test = ''
-            print('epoch:%d, time: %f(s), valid (NDCG@20: %.4f, HR@20: %.4f)' % (epoch, T, t_valid[0], t_valid[1],))
+            valid_hr_20 = t_valid[1]
+            print('epoch:%d, time: %f(s), valid (NDCG@20: %.4f, HR@20: %.4f)' % (epoch, T, t_valid[0], valid_hr_20,))
             f.write(str(t_valid) + ' ' + str(t_test) + '\n')
             f.flush()
             t0 = time.time()
+            if valid_hr_20 > best_val_hr_20:
+                folder = cnfg['dataset'] + '_' + cnfg['train_dir']
+                fname = 'SASRec.epoch={}.lr={}.layer={}.head={}.hidden={}.maxlen={}.pth'
+                fname = fname.format(cnfg['num_epochs'], cnfg['lr'], cnfg['num_blocks'], cnfg['num_heads'],
+                                     cnfg['hidden_units'], cnfg['maxlen'])
+                torch.save(model.state_dict(), os.path.join(folder, fname))
+                if cnfg['is_final_train']:
+                    ndcg_test, hr_test, preds_test = evaluate(model, dataset, cnfg)
+                    preds_test.to_csv(os.path.join(folder, 'preds_test.csv'), index=False, header=False)
+                best_val_hr_20 = valid_hr_20
+                best_epoch = epoch
+
             model.train()
+            # valid hr@20 is reported to decide on pruning the epoch
+            trial.report(valid_hr_20, epoch)
+
+            # Handle pruning based on the intermediate value.
+            if trial.should_prune():
+                raise optuna.exceptions.TrialPruned()
 
         if epoch == cnfg['num_epochs']:
             folder = cnfg['dataset'] + '_' + cnfg['train_dir']
@@ -135,67 +183,67 @@ def train_with_cnfg(cnfg):
     f.close()
     sampler.close()
     print("Done config")
-    return t_valid[1]
+    return best_val_hr_20, best_epoch
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', required=True)
-parser.add_argument('--train_dir', required=True)
-parser.add_argument('--split_char', default=',', type=str)
-parser.add_argument('--batch_size', default=128, type=int)
-parser.add_argument('--lr', default=0.001, type=float)
-parser.add_argument('--maxlen', default=50, type=int)
-parser.add_argument('--trials', default=5, type=int)
-parser.add_argument('--hidden_units', default=50, type=int)
-parser.add_argument('--num_blocks', default=2, type=int)
-parser.add_argument('--num_epochs', default=201, type=int)
-parser.add_argument('--num_heads', default=1, type=int)
-parser.add_argument('--dropout_rate', default=0.5, type=float)
-parser.add_argument('--l2_emb', default=0.0, type=float)
-parser.add_argument('--device', default='cuda', type=str)
-parser.add_argument('--inference_only', default=False, type=str2bool)
-parser.add_argument('--state_dict_path', default='', type=str)
-parser.add_argument('--is_final_train', action='store_true')
-parser.add_argument('--cnfg_file', default='cnfg.pkl', type=str)
-parser.add_argument('--log_dir', default='tensorboard/', type=str)
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', required=True)
+    parser.add_argument('--train_dir', required=True)
+    parser.add_argument('--split_char', default=',', type=str)
+    parser.add_argument('--batch_size', default=128, type=int)
+    parser.add_argument('--lr', default=0.001, type=float)
+    parser.add_argument('--maxlen', default=50, type=int)
+    parser.add_argument('--trials', default=5, type=int)
+    parser.add_argument('--hidden_units', default=50, type=int)
+    parser.add_argument('--num_blocks', default=2, type=int)
+    parser.add_argument('--num_epochs', default=201, type=int)
+    parser.add_argument('--num_heads', default=1, type=int)
+    parser.add_argument('--dropout_rate', default=0.5, type=float)
+    parser.add_argument('--l2_emb', default=0.0, type=float)
+    parser.add_argument('--device', default='cuda', type=str)
+    parser.add_argument('--inference_only', default=False, type=str2bool)
+    parser.add_argument('--state_dict_path', default='', type=str)
+    parser.add_argument('--is_final_train', action='store_true')
+    parser.add_argument('--cnfg_file', default='cnfg.pkl', type=str)
+    parser.add_argument('--log_dir', default='tensorboard/', type=str)
 
-args = parser.parse_args()
+    args = parser.parse_args()
+    return args
 
-print(args.is_final_train)
-if args.is_final_train:
-    print('Train with loaded config')
-    cnfg = pickle.load(open(os.path.join(args.dataset + '_' + args.train_dir, args.cnfg_file), 'rb'))
-    cnfg['is_final_train'] = True
-    train_with_cnfg(cnfg)
 
-else:
-    best_parameters, values, _experiment, _cur_model = optimize(
-        parameters=[
-            {"name": "dataset", "type": "fixed", "value_type": "str", "value": args.dataset},
-            {"name": "train_dir", "type": "fixed", "value_type": "str", "value": args.train_dir},
-            {"name": "batch_size", "type": "choice", "value_type": "int", "values": [32, 64, 128, 256]},
-            {"name": "lr", "type": "fixed", "value_type": "float", "value": args.lr},
-            {"name": "maxlen", "type": "choice", "value_type": "int", "values": [50, 100, 150, 200]},
-            {"name": "hidden_units", "type": "choice", "value_type": "int", "values": [50, 60, 70, 80, 90, 100]},
-            {"name": "num_blocks", "type": "choice", "value_type": "int", "values": [2, 3, 4]},
-            {"name": "num_heads", "type": "choice", "value_type": "int", "values": [1, 2]},
-            {"name": "num_epochs", "type": "fixed", "value_type": "int", "value": 201},
-            {"name": "dropout_rate", "type": "range", "value_type": "float", "bounds": [0.1, 0.6]},
-            {"name": "l2_emb", "type": "fixed", "value_type": "float", "value": args.l2_emb},
-            {"name": "device", "type": "fixed", "value_type": "str", "value": args.device},
-            {"name": "is_final_train", "type": "fixed", "value_type": "bool", "value": args.is_final_train},
-            {"name": "inference_only", "type": "fixed", "value_type": "bool", "value": False},
-            {"name": "split", "type": "fixed", "value_type": "str", "value": args.split_char},
-            {"name": "state_dict_path", "type": "fixed", "value_type": "str", "value": args.state_dict_path},
-            {"name": "log_dir", "type": "fixed", "value_type": "str", "value": args.log_dir},
+def main():
+    args = parse_args()
+    if args.is_final_train:
+        print('Train with loaded config')
+        cnfg = pickle.load(open(os.path.join(args.dataset + '_' + args.train_dir, args.cnfg_file), 'rb'))
+        cnfg['is_final_train'] = True
+        train_with_cnfg(cnfg)
 
-        ],
-        evaluation_function=train_with_cnfg,
-        minimize=False,
-        objective_name='hr10',
-        total_trials=args.trials
+    objective = Objective()
+    study = optuna.create_study(
+        pruner=optuna.pruners.MedianPruner(n_warmup_steps=10), direction="maximize"
     )
-    pickle.dump(best_parameters, open(os.path.join(args.dataset + '_' + args.train_dir, 'cnfg.pkl'), "wb"))
+
+    study.optimize(objective, n_trials=args.trials, callbacks=[objective.callback])
+
+    pruned_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.PRUNED]
+    complete_trials = [t for t in study.trials if t.state == optuna.structs.TrialState.COMPLETE]
+
+    print("Study statistics: ")
+    print("  Number of finished trials: ", len(study.trials))
+    print("  Number of pruned trials: ", len(pruned_trials))
+    print("  Number of complete trials: ", len(complete_trials))
+
+    print("Best trial:")
+    best_trial = study.best_trial
+    print("  Value: ", best_trial.value)
+
+    best_parameters = pickle.load(open(os.path.join(args.dataset + '_' + args.train_dir, args.cnfg_file), "rb"))
     best_parameters['is_final_train'] = True
+    best_parameters['num_epochs'] = best_parameters['best_epoch']
     train_with_cnfg(best_parameters)
 
+
+if __name__ == '__main__':
+    main()
